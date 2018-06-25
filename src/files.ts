@@ -3,10 +3,8 @@ import * as path from 'path';
 import { Duplex } from 'stream';
 import { promisify } from 'util';
 
-
 const stat = promisify(fs.stat);
-const fsPromises = fs.promises;
-// const readFile = fsPromises.readFile;
+const resolvePath = (filePath : string) => path.isAbsolute(filePath) ? path.resolve(process.cwd(), filePath) : filePath;
 
 class FileError extends Error {
   public path: string;
@@ -19,7 +17,7 @@ class FileError extends Error {
   }
 } 
 
-function buffertoStream(buffer : Buffer) {
+function bufferToStream(buffer : Buffer) {
   const stream = new Duplex();
   stream.push(buffer);
   stream.push(null);
@@ -27,20 +25,43 @@ function buffertoStream(buffer : Buffer) {
 }
 
 async function fileToStream(filePath : string)  {
-  const resolvePath = path.isAbsolute(filePath) ? filePath : path.resolve(process.cwd(), filePath);
+  const fPath = resolvePath(filePath);
   try {
-    const stats = await stat(resolvePath);
+    const stats = await stat(fPath);
     if (stats.isFile()) {
-      const fstream = await fs.createReadStream(filePath);
+      const fstream = await fs.createReadStream(fPath);
+      // tslint:disable-next-line:no-console
+      fstream.on('error', (err) => console.error(`Error creating ReadStream: ${err}`));
       return fstream;
     } else {
-      throw new FileError(filePath, stats); 
+      throw new FileError(fPath, stats); 
     }
   } catch (err) {
+    /* propogate error */
     throw err;
   }
 }
 
-export { fileToStream };
+async function bufferToFile(buf : Buffer, outFile: string) {
+  try {
+    const fPath = resolvePath(outFile);
+    const wstream = await fs.createWriteStream(fPath);
+    // tslint:disable-next-line:no-console
+    wstream.write(buf);
+    wstream.on('error', (err) => { throw err } );
+    wstream.end();
+    const stats = await stat(fPath);
+    if (stats.isFile()) {
+      return wstream;
+    } else {
+      throw new FileError(fPath, stats);
+    } 
+  } catch (err) {
+    /* propogate error. */
+    throw err;
+  }
+}
+
+export { fileToStream, bufferToFile, bufferToStream };
 
 
