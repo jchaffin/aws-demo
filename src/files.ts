@@ -62,6 +62,6 @@ async function bufferToFile(buf : Buffer, outFile: string) {
   }
 }
 
-export { fileToStream, bufferToFile, bufferToStream };
+export { resolvePath, fileToStream, bufferToFile, bufferToStream };
 
 

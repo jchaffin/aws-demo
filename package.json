@@ -3,12 +3,13 @@
   "version": "0.1.0",
   "description": "CLI interface for upload/download to AWS S3 Bucket.",
   "main": "src/index.js",
-  "module": "lib/index.js",
+  "module": "build/index.js",
   "author": "Jacob Chaffin",
   "license": "ISC",
   "scripts": {
     "clean": "rimraf rmdir build",
-    "build": "npm run clean && ./node_modules/.bin/tsc"
+    "build": "./node_modules/.bin/tsc",
+    "install": "npm link"
   },
   "bin": {
     "aws-demo": "./bin/cli.js"
@@ -16,6 +17,7 @@
   "dependencies": {
     "aws-sdk": "^2.263.1",
     "commander": "^2.15.1",
+    "dotenv": "^6.0.0",
     "rimraf": "^2.6.2",
     "tslint": "^5.10.0",
     "tslint-config-prettier": "^1.13.0",
@@ -24,6 +26,7 @@
     "typescript": "^2.9.2"
   },
   "devDependencies": {
+    "@types/dotenv": "^4.0.3",
     "@types/fs-promise": "^1.0.3",
     "@types/node": "^10.3.5"
   }
