@@ -7,7 +7,8 @@
   "author": "Jacob Chaffin",
   "license": "ISC",
   "scripts": {
-    "build": "rimraf rmdir lib && ./node_modules/.bin/tsc --lib es2015 --outDir lib src/*"
+    "clean": "rimraf rmdir lib",
+    "build": "npm run clean && ./node_modules/.bin/tsc"
   },
   "bin": {
     "aws-demo": "./bin/cli.js"
