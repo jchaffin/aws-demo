@@ -6,7 +6,7 @@ import { promisify } from 'util';
 
 const stat = promisify(fs.stat);
 const fsPromises = fs.promises;
-const readFile = fsPromises.readFile;
+// const readFile = fsPromises.readFile;
 
 class FileError extends Error {
   public path: string;
@@ -26,13 +26,13 @@ function buffertoStream(buffer : Buffer) {
   return stream;
 }
 
-async function fileToStream(filePath : string) {
+async function fileToStream(filePath : string)  {
   const resolvePath = path.isAbsolute(filePath) ? filePath : path.resolve(process.cwd(), filePath);
   try {
     const stats = await stat(resolvePath);
     if (stats.isFile()) {
-      const fileBuffer = await readFile(resolvePath);
-      return buffertoStream(fileBuffer);
+      const fstream = await fs.createReadStream(filePath);
+      return fstream;
     } else {
       throw new FileError(filePath, stats); 
     }
