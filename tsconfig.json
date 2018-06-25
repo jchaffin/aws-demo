@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "allowJs": true,
+    "target": "es5",
+    "module": "commonjs",
+    "outDir": "./dest",
+    "lib": [
+      "es5",
+      "es2015.promise"
+    ],
+    "outDir": "build"
+  },
+  "include": [
+    "src/*",
+    "src/**/*"
+  ]
+}
