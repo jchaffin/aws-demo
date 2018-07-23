@@ -8,16 +8,34 @@
   "license": "ISC",
   "scripts": {
     "clean": "rimraf build/*",
-    "build": "npm run clean && ./node_modules/.bin/tsc"
+    "build": "npm run clean && ./node_modules/.bin/tsc",
+    "test": "jest"
   },
   "bin": {
-    "aws-demo": "./bin/cli.js"
+    "s3-demo": "./bin/cli.js"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ]
   },
   "dependencies": {
     "aws-sdk": "^2.263.1",
     "commander": "^2.15.1",
     "dotenv": "^6.0.0",
+    "global": "^4.3.2",
+    "omelette": "^0.4.11",
     "rimraf": "^2.6.2",
+    "tsd": "^0.6.5",
     "tslint": "^5.10.0",
     "tslint-config-prettier": "^1.13.0",
     "tslint-config-standard": "^7.1.0",
@@ -27,6 +45,11 @@
   "devDependencies": {
     "@types/dotenv": "^4.0.3",
     "@types/fs-promise": "^1.0.3",
-    "@types/node": "^10.3.5"
+    "@types/jest": "^23.3.0",
+    "@types/node": "^10.3.5",
+    "aws-sdk-mock": "^4.0.0",
+    "jest": "^23.4.1",
+    "ts-jest": "^23.0.1",
+    "ts-paths": "^0.1.3"
   }
 }

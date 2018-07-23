@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "noImplicitAny": true,
+    "noImplicitAny": false,
     "strictNullChecks": true,
     "allowJs": true,
     "target": "es5",

@@ -4,7 +4,13 @@ import { Duplex } from 'stream';
 import { promisify } from 'util';
 
 const stat = promisify(fs.stat);
-const resolvePath = (filePath : string) => path.isAbsolute(filePath) ? path.resolve(process.cwd(), filePath) : filePath;
+
+function resolvePath(...pathSegments : string[] ) { 
+  const filePath = path.join(...pathSegments);
+  return path.isAbsolute(filePath) ? 
+        filePath : 
+        path.resolve(process.cwd(), filePath);
+}
 
 class FileError extends Error {
   public path: string;
@@ -17,24 +23,43 @@ class FileError extends Error {
   }
 } 
 
-function bufferToStream(buffer : Buffer) {
-  const stream = new Duplex();
-  stream.push(buffer);
-  stream.push(null);
-  return stream;
+// function bufferToStream(buffer : Buffer) {
+//   const stream = new Duplex();
+//   stream.push(buffer);
+//   stream.push(null);
+//   return stream;
+// }
+
+
+async function handleDirectory(dirpath: string) {
+  let fullpath;
+  try {
+    fullpath = await promisify(fs.realpath)(dirpath);
+    return fullpath;
+  } catch (err) {
+    fullpath = await err.path;
+    await promisify(fs.mkdir)(fullpath);
+    return handleDirectory(fullpath);
+  }
 }
 
+
 async function fileToStream(filePath : string)  {
-  const fPath = resolvePath(filePath);
+  let fstream;
   try {
-    const stats = await stat(fPath);
+    const stats = await stat(filePath);
     if (stats.isFile()) {
-      const fstream = await fs.createReadStream(fPath);
+      fstream = await fs.createReadStream(filePath);
       // tslint:disable-next-line:no-console
       fstream.on('error', (err) => console.error(`Error creating ReadStream: ${err}`));
       return fstream;
     } else {
-      throw new FileError(fPath, stats); 
+      try {
+        await handleDirectory(path.dirname(filePath));
+        fstream.on('error', (err) => console.error(`Error creating ReadStream: ${err}`));
+      } catch (err) {
+        throw new FileError(filePath, stats); 
+      }
     }
   } catch (err) {
     /* propogate error */
@@ -45,6 +70,9 @@ async function fileToStream(filePath : string)  {
 async function bufferToFile(buf : Buffer, outFile: string) {
   try {
     const fPath = resolvePath(outFile);
+    const dirPath = fPath.slice(-1) === '/' ?
+                    await handleDirectory(outFile) :
+                    await handleDirectory(path.dirname(outFile));
     const wstream = await fs.createWriteStream(fPath);
     // tslint:disable-next-line:no-console
     wstream.write(buf);
@@ -62,6 +90,15 @@ async function bufferToFile(buf : Buffer, outFile: string) {
   }
 }
 
-export { resolvePath, fileToStream, bufferToFile, bufferToStream };
+export { 
+  bufferToFile,   
+  fileToStream,
+  handleDirectory,
+  resolvePath
+}
+  
+
+  
+  
 
 

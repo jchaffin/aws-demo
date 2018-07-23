@@ -1,29 +1,86 @@
-import * as program from "commander"
+import * as program from 'commander';
 import { config } from 'dotenv';
-import { downloadResource, uploadResource } from './s3api';
+import { readdir } from 'fs';
+import * as omelette from 'omelette';
+import { promisify } from 'util';
+import { downloadResource, listBuckets, listObjects, uploadResource } from './s3api';
 
-program.version('0.1.0');
+function CLI()  {
+  program.version('0.1.0');
 
-// tslint:disable-next-line:no-console
-program
-  .option('-c, --config <path>', 'path to AWS credentials file. Defaults to .env')
-  .command('upload <bucket> <file>')
-  .description("Upload FILE to BUCKET")
-  .action((bucket, file) => uploadResource(bucket, file));
-
-program
-  .command('download <bucket> <file>')
-  .description("Download FILE from BUCKET")
-  .action((bucket, file) => downloadResource(bucket, file));
-
-if (!process.argv.slice(2).length) {
-  program.outputHelp();
+  // tslint:disable-next-line:no-console
+  program
+  .option('--setup', 'Setup shell completion.')
+  .option('-c, --config <path>', 'Path to AWS credentials file. Defaults to .env') ;
+  
+  program
+    .command('upload <bucket> <file>')
+    .description("Upload FILE to BUCKET")
+    .action((bucket, file) => uploadResource(bucket, file));
+  
+  program
+    .command('download <bucket> <key>')
+    .option('-d, --dir <path>', 'Output directory')    
+    .description("Download resource with KEY from BUCKET")
+    .action((bucket, key, cmd) => {
+      if (cmd.dir) {
+        downloadResource(bucket, key, cmd.dir);
+      } else {
+        downloadResource(bucket, key);
+      }
+    })
+  
+  if (!process.argv.slice(2).length) {
+    program.outputHelp();
+  }
+  
+  program.parse(process.argv);
+  
+  if (program.config) {
+    config({path: program.config})
+  } else {
+    config();
+  }
 }
 
-program.parse(process.argv);
+const completion = omelette(`s3-demo <action> <bucket> <file>`);
 
-if (program.config) {
-  config({path: program.config})
-} else {
-  config();
+completion.on( 'action', ({ reply }) => {
+  reply(['upload', 'download']);
+});
+
+completion.onAsync('bucket', async ({ reply }) => {
+    const response = await listBuckets();
+    reply(new Promise((resolve) => {
+      if (response) {
+        const buckets = response.Buckets;
+        if (buckets) {
+          resolve(buckets.map(bucket => bucket.Name));
+        }
+      }
+    })
+  );
+});
+
+completion.onAsync('file', async ({line, before, reply }) => {
+  line.includes('upload') ? 
+  reply(await promisify(readdir)('.')) :
+  reply(await listObjects(before).then(
+    objects => objects ? objects
+     .map(o => o.Key ? o.Key.replace(' ', '\ ').toString() : "")
+    .filter(key => key.slice(-1) !== '/') : ""
+  ));
+})
+
+// tslint:disable-next-line:no-bitwise
+if (~process.argv.indexOf('--setup')) {
+  completion.setupShellInitFile()
 }
+
+completion.next(() => {
+  CLI();
+});
+
+completion.init();
+
+
