@@ -8,7 +8,7 @@
   "license": "ISC",
   "scripts": {
     "clean": "rimraf build/*",
-    "build": "npm run clean && ./node_modules/.bin/tsc",
+    "build": "npm run clean && tsc",
     "test": "jest"
   },
   "bin": {

@@ -1,9 +1,9 @@
 import * as program from 'commander';
-import { config } from 'dotenv';
 import { readdir } from 'fs';
 import * as omelette from 'omelette';
 import { promisify } from 'util';
 import { downloadResource, listBuckets, listObjects, uploadResource } from './s3api';
+
 
 function CLI()  {
   program.version('0.1.0');
@@ -11,7 +11,6 @@ function CLI()  {
   // tslint:disable-next-line:no-console
   program
   .option('--setup', 'Setup shell completion.')
-  .option('-c, --config <path>', 'Path to AWS credentials file. Defaults to .env') ;
   
   program
     .command('upload <bucket> <file>')
@@ -33,14 +32,8 @@ function CLI()  {
   if (!process.argv.slice(2).length) {
     program.outputHelp();
   }
-  
+
   program.parse(process.argv);
-  
-  if (program.config) {
-    config({path: program.config})
-  } else {
-    config();
-  }
 }
 
 const completion = omelette(`s3-demo <action> <bucket> <file>`);
